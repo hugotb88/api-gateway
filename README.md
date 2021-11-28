@@ -32,3 +32,10 @@ Then...
 Original URL --> ``http://localhost:8100/currency-conversion-feign/from/USD/to/MXN/quantity/10``
 
 Using Spring Gateway --> ``http://localhost:8765/currency-exchange/currency-exchange/from/USD/to/MXN``
+
+
+# Distributed Tracing (Zipkin Server)
+- ¿How you can trace a request tha travels across a lot of Microservices?
+  - Using Distributed Tracing 
+
+![img_1.png](img_1.png)
