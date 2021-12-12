@@ -86,3 +86,107 @@ in properties file (1.0 means 100% of the requests)
 
 Run the microservice, Zipkin, send a request and Refresh Zipkin in browser
 ![img_4.png](img_4.png)
+
+
+Sleuth library
+- Allows to assign an ID to each one of the requests.
+- In this way you can trace and track where a request (In which microservice) is failing
+
+# Docker compose
+- It's a tool to define and execute applications of several Docker containers
+- Configured in a YAML file
+- Basically you can run a los of applications configuring the in the Docker compose file.
+- Reference https://github.com/in28minutes/spring-microservices-v2/tree/main/04.docker
+  - You can download that repo and the resources are there
+
+
+## Install Docker Compose
+- For Windows is included in the .exe that installs docker.
+
+``docker compose --version``
+
+Docker compose file example (docker-compose.yaml)
+- Use spaces instead Tabs (2 spaces)
+- It is in YAML format
+- Each container is called "service" in the compose file
+- Usually a network is created
+```
+version: '3.7'
+services:
+  currency-exchange:
+    image: hugotb88/mmv2-currency-exchange-service:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8000:8000"
+    networks:
+      - currency-network
+        
+networks:
+  currency-network:
+```
+
+If you want to run that docker compose file
+- Go to the directory where the file is
+  ``docker-compose up``
+
+
+# Creating a Docker compose for Currency Exchange Service
+- Add the following in the pom.xml:
+
+```
+<configuration>
+  <image>
+    <name>hugotb88/mmv2-${project.artifactId}:${project.version}</name>
+  </image>
+  <pullPolicy>IF_NOT_PRESENT</pullPolicy>
+</configuration> 
+```
+
+- configuration --> start of image configuration
+- name --> {id}/name_of_the_image
+- pullPolicy --> IF_NOT_PRESENT means that always will create and image if not exists
+
+Result in pom.xml
+```
+<build>
+  <plugins>
+      <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <configuration>
+              <image>
+                  <name>hugotb88/mmv2-${project.artifactId}:${project.version}</name>
+              </image>
+              <pullPolicy>IF_NOT_PRESENT</pullPolicy>
+          </configuration>
+      </plugin>
+  </plugins>
+</build>
+```
+
+Then run a Maven build with the following goals
+``spring-boot:build-image -DskipTests``
+
+![](img_11.png)
+
+![](img_13.png)
+
+
+Then you can use your image using the following command:
+
+``docker run -p 8765:8765 hugotb88/mmv2-api-gateway:0.0.1-SNAPSHOT``
+
+![](img_15.png)
+
+## Additional thing added to Docker compose file
+
+```
+depends_on:
+      - naming-server
+environment:
+  EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+```
+
+depends-on --> Indicates that the current-exchange container needs first the naming-server service.
+
+environment --> Environment variable, we replaced localhost for naming-server, because localhost is not the same inside Docker than in our machines, in this way Eureka (naming-server) can discovers the currency-exchange service, its the same property that we have in the properties file in the currency-exchange service but in uppercase and replacing '=' for ':'.
